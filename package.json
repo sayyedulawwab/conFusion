@@ -8,7 +8,12 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "lite": "lite-server"
     },
-    "author": "",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SayyedulBappy/conFusion.git"
+    },
+    "homepage": "https://github.com/SayyedulBappy/conFusion",
+    "author": "Sayyedul Bappy",
     "license": "ISC",
     "devDependencies": {
         "lite-server": "^2.3.0"
