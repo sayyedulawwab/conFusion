@@ -1,27 +1,29 @@
 {
-    "name": "confusion",
-    "version": "1.0.0",
-    "description": "This is a website for Ristorante Con Fusion",
-    "main": "index.html",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "dev": "lite-server"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/SayyedulBappy/conFusion.git"
-    },
-    "homepage": "https://github.com/SayyedulBappy/conFusion",
-    "author": "Sayyedul Bappy",
-    "license": "ISC",
-    "devDependencies": {
-        "lite-server": "^2.3.0"
-    },
-    "dependencies": {
-        "bootstrap": "^4.4.1",
-        "bootstrap-social": "^5.1.1",
-        "font-awesome": "^4.7.0",
-        "jquery": "^3.5.1",
-        "popper.js": "^1.16.1"
-    }
+	"name": "confusion",
+	"version": "1.0.0",
+	"description": "This is a website for Ristorante Con Fusion",
+	"main": "index.html",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"dev": "lite-server",
+		"scss": "node-sass -o css/ css/"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/SayyedulBappy/conFusion.git"
+	},
+	"homepage": "https://github.com/SayyedulBappy/conFusion",
+	"author": "Sayyedul Bappy",
+	"license": "ISC",
+	"devDependencies": {
+		"lite-server": "^2.3.0",
+		"node-sass": "^4.14.1"
+	},
+	"dependencies": {
+		"bootstrap": "^4.4.1",
+		"bootstrap-social": "^5.1.1",
+		"font-awesome": "^4.7.0",
+		"jquery": "^3.5.1",
+		"popper.js": "^1.16.1"
+	}
 }
