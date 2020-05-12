@@ -22,7 +22,7 @@
 		"lite-server": "^2.3.0",
 		"node-sass": "^4.14.1",
 		"onchange": "^7.0.2",
-		"parallelshell": "^3.0.2"
+		"parallelshell": "^3.0.1"
 	},
 	"dependencies": {
 		"bootstrap": "^4.4.1",
