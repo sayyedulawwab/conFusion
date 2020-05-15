@@ -1,84 +1,139 @@
-'use strict';
+// Initialize modules
+// Importing specific gulp API functions lets us write them below as series() instead of gulp.series()
+const { src, dest, watch, series, parallel } = require('gulp');
+// Importing all the Gulp-related packages we want to use
+const del = require('del');
+const sourcemaps = require('gulp-sourcemaps');
+const sass = require('gulp-sass');
+const concat = require('gulp-concat');
+const uglify = require('gulp-uglify');
+const postcss = require('gulp-postcss');
+const autoprefixer = require('autoprefixer');
+const cssnano = require('cssnano');
+const replace = require('gulp-replace');
+const imagemin = require('gulp-imagemin');
+const htmlmin = require('gulp-htmlmin');
+const browserSync = require('browser-sync').create();
+// File paths
+const files = {
+	imagePath: 'img/**/*.+(png|jpg|jpeg|gif|svg|ico)',
+	htmlPath: '*.html',
+	scssPath: '/css/**/*.scss',
+	cssPath: [
+		'node_modules/bootstrap/dist/css/bootstrap.min.css',
+		'node_modules/font-awesome/css/font-awesome.min.css',
+		'node_modules/bootstrap-social/bootstrap-social.css',
+		'css/**/*.css',
+	],
+	jsPath: [
+		'node_modules/jquery/dist/jquery.js',
+		'node_modules/popper.js/dist/umd/popper.js',
+		'node_modules/bootstrap/dist/js/bootstrap.js',
+		'js/scripts.js',
+	],
+	fontsPath: 'node_modules/font-awesome/fonts/*',
+};
+//clean dist folder
+function clean() {
+	return del('dist');
+}
+// image
 
-var gulp = require('gulp'),
-	sass = require('gulp-sass'),
-	browserSync = require('browser-sync'),
-	del = require('del'),
-	imagemin = require('gulp-imagemin'),
-	uglify = require('gulp-uglify'),
-	usemin = require('gulp-usemin'),
-	rev = require('gulp-rev'),
-	cleanCss = require('gulp-clean-css'),
-	flatmap = require('gulp-flatmap'),
-	htmlmin = require('gulp-htmlmin');
+function imageTask() {
+	return src(files.imagePath).pipe(imagemin()).pipe(dest('dist/img/'));
+}
+// Task to minify HTML
+function htmlTask() {
+	return src(files.htmlPath).pipe(htmlmin()).pipe(dest('dist/'));
+}
+// Sass task: compiles the style.scss file into style.css
+function scssTask() {
+	return src(files.scssPath)
+		.pipe(sourcemaps.init()) // initialize sourcemaps first
+		.pipe(sass()) // compile SCSS to CSS
 
-gulp.task('sass', function () {
-	return gulp
-		.src('./css/*.scss')
-		.pipe(sass().on('error', sass.logError))
-		.pipe(gulp.dest('./css'));
-});
+		.pipe(sourcemaps.write('.')) // write sourcemaps file in current directory
+		.pipe(dest('/css')); // put final CSS in dist/css folder
+}
+// css task: compiles the css file into style.css
+function cssTask() {
+	return src(files.cssPath)
+		.pipe(sourcemaps.init()) // initialize sourcemaps first
+		.pipe(concat('styles.css'))
+		.pipe(postcss([autoprefixer(), cssnano()])) // PostCSS plugins
+		.pipe(sourcemaps.write('.')) // write sourcemaps file in current directory
+		.pipe(dest('dist/css')); // put final CSS in dist/css folder
+}
 
-gulp.task('sass:watch', function () {
-	gulp.watch('./css/*.scss', ['sass']);
-});
+// JS task: concatenates and uglifies JS files to script.js
+function jsTask() {
+	return src(files.jsPath)
+		.pipe(sourcemaps.init())
+		.pipe(concat('scripts.js'))
+		.pipe(uglify())
+		.pipe(sourcemaps.write('.'))
+		.pipe(dest('dist/js'));
+}
 
-gulp.task('browser-sync', function () {
-	var files = ['./*.html', './css/*.css', './img/*.{png,jpg,gif}', './js/*.js'];
+// fontawesome
+function fontsTask() {
+	return src(files.fontsPath).pipe(dest('dist/fonts'));
+}
 
-	browserSync.init(files, {
+// Cachebust
+function cacheBustTask() {
+	var cbString = new Date().getTime();
+	return src(['index.html'])
+		.pipe(replace(/cb=\d+/g, 'cb=' + cbString))
+		.pipe(dest('.'));
+}
+// browserSync
+
+function browser() {
+	browserSync.init({
 		server: {
-			baseDir: './',
+			baseDir: 'dist/',
 		},
 	});
-});
+}
 
-// Default task
-gulp.task('default', ['browser-sync'], function () {
-	gulp.start('sass:watch');
-});
-// Clean
-gulp.task('clean', function () {
-	return del(['dist']);
-});
+// Watch task: watch SCSS and JS files for changes
+// If any change, run scss and js tasks simultaneously
+function watchTask() {
+	watch(
+		files.imagePath +
+			files.htmlPath +
+			files.scssPath +
+			files.cssPath +
+			files.jsPath,
 
-gulp.task('copyfonts', function () {
-	gulp
-		.src('./node_modules/font-awesome/fonts/**/*.{ttf,woff,eof,svg}*')
-		.pipe(gulp.dest('./dist/fonts'));
-});
-// Images
-gulp.task('imagemin', function () {
-	return gulp
-		.src('img/*.{png,jpg,gif}')
-		.pipe(
-			imagemin({ optimizationLevel: 3, progressive: true, interlaced: true })
+		series(
+			htmlTask,
+			scssTask,
+			parallel(cssTask, jsTask),
+			cacheBustTask,
+			browser
 		)
-		.pipe(gulp.dest('dist/img'));
-});
-gulp.task('usemin', function () {
-	return gulp
-		.src('./*.html')
-		.pipe(
-			flatmap(function (stream, file) {
-				return stream.pipe(
-					usemin({
-						css: [rev()],
-						html: [
-							function () {
-								return htmlmin({ collapseWhitespace: true });
-							},
-						],
-						js: [uglify(), rev()],
-						inlinejs: [uglify()],
-						inlinecss: [cleanCss(), 'concat'],
-					})
-				);
-			})
-		)
-		.pipe(gulp.dest('dist/'));
-});
+	);
+}
+const build = series(
+	clean,
+	imageTask,
+	fontsTask,
+	htmlTask,
+	scssTask,
+	parallel(cssTask, jsTask),
+	cacheBustTask,
+	browser
+);
 
-gulp.task('build', ['clean'], function () {
-	gulp.start('copyfonts', 'imagemin', 'usemin');
-});
+// Export the default Gulp task so it can be run
+// Runs the scss and js tasks simultaneously
+// then runs cacheBust, then watch task
+exports.clean = clean;
+exports.image = imageTask;
+exports.html = htmlTask;
+exports.browser = browser;
+exports.build = build;
+exports.watch = series(watchTask);
+exports.default = series(build, watch);
