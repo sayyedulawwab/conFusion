@@ -9,7 +9,7 @@ Restaurant website done while doing Coursera's course :
 Install node.js
 Run the following commands:
 
-`npm intall`
+`npm install`
 
 `npm run lite`
 
